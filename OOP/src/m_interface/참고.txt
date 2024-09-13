@@ -1,0 +1,27 @@
+[ class modifier ]
+
+__1__  class A {
+
+	__2__  int A;
+	__3__  A() { }
+	__4__  void A() {}
+}
+
+[1] public / final / abstract
+[2] public / private / protected / static / final
+[3] public / private / protected
+[4] public / private / protected / static / final / abstract
+
+====================================================================
+
+[ interface ]//클래스랑 비슷한 개념
+
+interface B {
+	[public static final]	int B;//생성자 함수가 없다보니 static으로 불러야하며 이 안에있는것들은 상수이다
+	// 생성자없음
+	[public abstract] void B();
+} 
+마리아 db든 오라클 db든interfac 쓸때 거의 안바뀐다
+	
+======================================================================
+interface는 표준화를 위해서 사용하고 일부를 추상화하지만 abstract는 상속을 위해서 사용하고 모든걸 추상화한다
