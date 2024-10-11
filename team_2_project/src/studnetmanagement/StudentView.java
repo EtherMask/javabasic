@@ -127,7 +127,7 @@ public class StudentView extends JPanel{
 			int result = JOptionPane.showConfirmDialog(bStudentDelete, "정말로 삭제하시겠습니까?", "확인", JOptionPane.YES_NO_OPTION);
 			if (result == JOptionPane.YES_OPTION) {
 				// 사용자가 "예"를 선택한 경우 정보 삭제
-				JOptionPane.showMessageDialog(bStudentDelete, "성공", "삭제완료", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(bStudentDelete, "삭제완료", "삭제완료", JOptionPane.INFORMATION_MESSAGE);
 				dao.delete(Integer.parseInt(tfStudentID.getText()));
 				// 사용자가 창을 닫은 경우
 			} else if(result == JOptionPane.CLOSED_OPTION) {
