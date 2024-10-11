@@ -3,6 +3,7 @@ package studnetmanagement;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -46,17 +47,18 @@ public class StudentView extends JPanel{
 	JTable			jTable;
 
 	// 출력화면 컬럼명들 지정
-	String [] 		  title = {"학번", "학과", "이름", "전화번호","성별", "나이", "주소"};
+	//String [] title = {"학번", "학과", "이름", "전화번호","성별", "나이", "주소"};
 
 	// 모델단 변수 선언
-	StudentDao		dao;
+	StudentDao	dao;
 
 	public StudentView() {
 		addLayout();		// 객체생성 및 화면구성
 		eventProc();		// 이벤트처리 등록
-		conectDB();		// DB연결
-
+		conectDB();			// DB연결
+		selectByNumber();	// 학생목록 창띄우자마자 출력
 	}
+	
 	void conectDB() {
 		try {
 			dao = new StudentDaoImpl();
@@ -69,23 +71,18 @@ public class StudentView extends JPanel{
 
 	//이벤트 처리
 	void eventProc() {
-		// 학번에서 엔터쳤을때 학생정보 출력
-		tfStudentID.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				//selectByNumber();
-			}
-		});
-
 		// 검색창에서 엔터쳤을 때
 		tfSearch.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//selectstudent();
+				selectByNumber();
 			}
 		});	
+		
+		tfStudentID.setEditable(false);
 		// 검색버튼을 눌렀을 때
 		bSelect.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//selectstudent();
+				selectByNumber();
 			}
 		});
 		// 버튼 이벤트 등록
@@ -112,6 +109,7 @@ public class StudentView extends JPanel{
 					tfStudentID.setText(vo.getStudentid()+"");
 					tfClassName.setText(vo.getClassname());
 					tfStudentName.setText(vo.getSname());
+					tfTel.setText(vo.getTel());
 					tfAge.setText(vo.getAge() + "" );
 					cbGender.setSelectedItem(vo.getGender());
 					tfAddres.setText(vo.getAddr());
@@ -123,11 +121,31 @@ public class StudentView extends JPanel{
 		});	
 	} // end of eventProc
 
+	// 삭제버튼을 눌렀을때 학생정보 삭제
+	public void deleteStudent() {
+		try {
+			int result = JOptionPane.showConfirmDialog(bStudentDelete, "정말로 삭제하시겠습니까?", "확인", JOptionPane.YES_NO_OPTION);
+			if (result == JOptionPane.YES_OPTION) {
+				// 사용자가 "예"를 선택한 경우 정보 삭제
+				JOptionPane.showMessageDialog(bStudentDelete, "성공", "삭제완료", JOptionPane.INFORMATION_MESSAGE);
+				dao.delete(Integer.parseInt(tfStudentID.getText()));
+				// 사용자가 창을 닫은 경우
+			} else if(result == JOptionPane.CLOSED_OPTION) {
+				// 사용자가 "아니오"를 선택한 경우
+			}else if (result == JOptionPane.NO_OPTION) {
+			}
+		}catch (Exception e) {
+			JOptionPane.showMessageDialog(bStudentModify, "오류", "삭제실패", JOptionPane.ERROR_MESSAGE);
+			e.printStackTrace();
+		}
+	}
+	
+	
 	// 수정버튼을 눌렀을때 정보수정
 	public void modifyStudent() {
-		StudentVO vo = new StudentVO();
 		
-		int	id			= Integer.parseInt(tfStudentID.getText());
+		
+		int		id		= Integer.parseInt(tfStudentID.getText());
 		String	cname	= tfClassName.getText();
 		String	sname	= tfStudentName.getText();
 		String	gender	= (String)cbGender.getSelectedItem();
@@ -135,6 +153,7 @@ public class StudentView extends JPanel{
 		int	age			= Integer.parseInt(tfAge.getText());
 		String	addr	= tfAddres.getText();
 		
+		StudentVO vo = new StudentVO();
 		vo.setStudentid(id);
 		vo.setClassname(cname);
 		vo.setSname(sname);
@@ -143,33 +162,42 @@ public class StudentView extends JPanel{
 		vo.setAge(age);
 		vo.setAddr(addr);
 		
-		try {
-			dao.modifystudent(vo);
-			JOptionPane.showMessageDialog(bStudentModify, "확인", "수정성공", JOptionPane.ERROR_MESSAGE);
+		try { // 정보를 수정할것인지 질문하기
+			int result = JOptionPane.showConfirmDialog(bStudentModify, "정보를 수정하시겠습니까?", "확인", JOptionPane.YES_NO_OPTION);
+				// "예"를 선택했을경우
+			if(result == JOptionPane.YES_OPTION) {
+			int all = dao.modifystudent(vo);
+			JOptionPane.showMessageDialog(bStudentModify, "수정완료", "수정완료", JOptionPane.INFORMATION_MESSAGE);
+				// "아니오"를 선택했을경우
+			}else if (result == JOptionPane.NO_OPTION) {
+				// 창을 닫았을경우
+			}else if (result == JOptionPane.CLOSED_OPTION) {
+			}
 		}catch (Exception e){
 			JOptionPane.showMessageDialog(bStudentModify, "오류", "수정실패", JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 		}
 	}
 	
-	// 학번을 통한 학생정보 검색
-	public void selectByStudent() {
-		int com = comSearch.getSelectedIndex();
-		String search = tfSearch.getText();
+	// 학생정보 검색
+	public void selectByNumber() {
 		
-		try {
-			//ArrayList data = dao.selectByNumber(com);
-			//model.data = data;
-			
-		}finally {
-			
+		int com = comSearch.getSelectedIndex();
+		String sl = tfSearch.getText();
+		
+			try {
+				ArrayList data = dao.selectstudent(com, sl);
+				model.data = data;
+				model.fireTableDataChanged();
+			} catch (Exception e) {
+				JOptionPane.showMessageDialog(bSelect, "오류", "검색실패", JOptionPane.ERROR_MESSAGE);
+				e.printStackTrace();	
 		}
 	}
 	
 	// 학생정보 등록 클릭시 - 학생정보 등록
 	public void insertStudent() {
 
-		int 	id	 	= Integer.parseInt(tfStudentID.getText());
 		String	cname	= tfClassName.getText();
 		String	sname	= tfStudentName.getText();
 		String	tel		= tfTel.getText();
@@ -186,13 +214,28 @@ public class StudentView extends JPanel{
 		vo.setTel(tel);
 		
 		try {
+			int result = JOptionPane.showConfirmDialog(bStudentInsert, "정보를 등록하시겠습니까?", "확인", JOptionPane.YES_NO_OPTION);
+			if (result == JOptionPane.YES_OPTION) {
 			dao.insertStudent(vo);
-			JOptionPane.showMessageDialog(bStudentInsert, "확인", "입력성공", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(bStudentInsert, "등록완료", "등록성공", JOptionPane.INFORMATION_MESSAGE);
+			}else if (result == JOptionPane.NO_OPTION) {
+			}else if (result == JOptionPane.CLOSED_OPTION) {
+			}
 		}catch (Exception e) {
-			JOptionPane.showMessageDialog(bStudentInsert,"오류", "입력실패" , JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(bStudentInsert,"오류", "등록실패" , JOptionPane.ERROR_MESSAGE);
 		}
 	}
-
+	
+	// 화면 초기화
+	public void clear() {
+		tfStudentID.setText(null);
+		tfClassName.setText(null);
+		tfStudentName.setText(null);
+		tfTel.setText(null);
+		cbGender.setSelectedIndex(0);
+		tfAge.setText(null);
+		tfAddres.setText(null);
+	}
 
 	//버튼 이벤트 처리
 	class ButtonEvent implements ActionListener{
@@ -201,15 +244,20 @@ public class StudentView extends JPanel{
 
 			if(ob == bStudentInsert) {
 				insertStudent();				// 학생정보 등록
+				selectByNumber();
 			}
 			else if (ob == bStudentModify) {
 				modifyStudent();				// 학생정보 수정
+				selectByNumber();
+				clear();
 			}
 			else if (ob == bStudentDelete) {
-				//deleteStudent();				// 학생정보 삭제
+				deleteStudent();				// 학생정보 삭제
+				selectByNumber();				// 삭제확인위한 자동 검색
+				clear();
 			}
 			else if (ob == bSelect) {
-				selectByStudent();					// 학생정보 검색
+				selectByNumber();				// 학생정보 검색
 			}
 		}
 	}
@@ -218,13 +266,14 @@ public class StudentView extends JPanel{
 	public void addLayout() {
 
 		// 멤버변수들의 객체생성
-		tfStudentID 	= new JTextField(26);
-		tfClassName		= new JTextField(26);
-		tfStudentName	= new JTextField(26);
-		tfTel 			= new JTextField(26);
-		tfAge 			= new JTextField(26);
-		tfAddres 		= new JTextField(26);
+		tfStudentID 	= new JTextField(10);
+		tfClassName		= new JTextField(10);
+		tfStudentName	= new JTextField(10);
+		tfTel 			= new JTextField(10);
+		tfAge 			= new JTextField(10);
+		tfAddres 		= new JTextField(25);
 
+		ta				= new JTextArea();
 		// 라벨들 객체생성
 		jlStudentID		= new JLabel("학번");
 		jlClassName		= new JLabel("학과");
@@ -259,12 +308,14 @@ public class StudentView extends JPanel{
 		comSearch	= new JComboBox<>(cbCheck);
 		comSearch.setFont(font);
 		tfSearch	= new JTextField(30);
-		tfSearch.setPreferredSize(new Dimension(0, 30));
-		comSearch.setPreferredSize(new Dimension(150, 30));
+		tfSearch.setPreferredSize(new Dimension(0,
+				30));
+		comSearch.setPreferredSize(new Dimension(160, 30));
 		
 		model		= new StudentTableModel();
 		jTable		= new JTable(model);
 		
+	
 		// 성별 선택
 		String [] comGender = {"남자", "여자"};
 		cbGender	= new JComboBox<>(comGender);

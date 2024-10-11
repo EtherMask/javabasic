@@ -11,7 +11,7 @@ public interface StudentDao {
 	public void insertStudent(StudentVO vo) throws Exception;
 	
 	// 학생정보 검색
-	public ArrayList selectstudent(int studentid, String sname) throws Exception;
+	public ArrayList selectstudent(int com, String sl) throws Exception;
 	
 	// 학생정보 수정
 	public int modifystudent(StudentVO vo) throws Exception;
